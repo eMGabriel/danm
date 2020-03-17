@@ -26,7 +26,7 @@ function check_codegen_tampering {
 set -e
 export CGO_ENABLED=0
 cd ${GOPATH}/src/github.com/nokia/danm
-
+go mod vendor
 run_uts
 check_codegen_tampering
 if [ -n "${DID_YOU_TAMPER}" ]

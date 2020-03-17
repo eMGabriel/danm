@@ -16,7 +16,7 @@
 #   provide to the container build.
 #
 # - `USE_CACHE`. If defined, use cache during image build process.
-#   For compativility with earlier versions of the build process,
+#   For compatibility with earlier versions of the build process,
 #   the default is to NOT use the cache.
 #
 # - `KEEP_BUILDER`. If defined, keep the builder image and tag
