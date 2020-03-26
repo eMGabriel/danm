@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT=$(cd $(dirname $0)/../../; pwd)
+ROOT=$(cd "$(dirname $0)/../../"; pwd)
 
 set -o errexit
 set -o nounset
