@@ -7,7 +7,10 @@ import (
   "encoding/json"
   "io/ioutil"
   "net/http"
-  "k8s.io/api/admission/v1beta1"
+  "strings"
+
+  "github.com/nokia/danm/pkg/cnidel"
+  admissionv1 "k8s.io/api/admission/v1"
   metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
   "k8s.io/apimachinery/pkg/runtime"
   "k8s.io/apimachinery/pkg/runtime/serializer"
@@ -20,9 +23,9 @@ type Patch struct {
   Value interface{}     `json:"value,omitempty"`
 }
 
-func DecodeAdmissionReview(httpRequest *http.Request) (v1beta1.AdmissionReview,error) {
+func DecodeAdmissionReview(httpRequest *http.Request) (admissionv1.AdmissionReview,error) {
   var payload []byte
-  reviewRequest := v1beta1.AdmissionReview{}
+  reviewRequest := admissionv1.AdmissionReview{}
   if httpRequest.Body == nil {
     return reviewRequest, errors.New("Received review request is empty!")
   }
@@ -36,9 +39,9 @@ func DecodeAdmissionReview(httpRequest *http.Request) (v1beta1.AdmissionReview,e
   return reviewRequest, err
 }
 
-func SendErroneousAdmissionResponse(responseWriter http.ResponseWriter, request *v1beta1.AdmissionRequest, err error) {
+func SendErroneousAdmissionResponse(responseWriter http.ResponseWriter, request *admissionv1.AdmissionRequest, err error) {
   log.Println("ERROR: Admitting resource failed with error:" + err.Error())
-  failedResponse := &v1beta1.AdmissionResponse {
+  failedResponse := &admissionv1.AdmissionResponse {
     Result: &metav1.Status {
       Message: err.Error(),
     },
@@ -47,13 +50,13 @@ func SendErroneousAdmissionResponse(responseWriter http.ResponseWriter, request 
   if request != nil {
     failedResponse.UID = request.UID
   }
-  responseAdmissionReview := v1beta1.AdmissionReview {
+  responseAdmissionReview := admissionv1.AdmissionReview {
     Response: failedResponse,
   }
   SendAdmissionResponse(responseWriter, responseAdmissionReview)
 }
 
-func SendAdmissionResponse(responseWriter http.ResponseWriter, reviewResponse v1beta1.AdmissionReview) {
+func SendAdmissionResponse(responseWriter http.ResponseWriter, reviewResponse admissionv1.AdmissionReview) {
   respBytes, err := json.Marshal(reviewResponse)
   if err != nil {
     log.Println("ERROR: Failed to send AdmissionResponse for request:" + string(reviewResponse.Response.UID) + " because JSON marshalling failed with error:" + err.Error())
@@ -65,8 +68,8 @@ func SendAdmissionResponse(responseWriter http.ResponseWriter, reviewResponse v1
   }
 }
 
-func CreateReviewResponseFromPatches(patchList []Patch) *v1beta1.AdmissionResponse {
-  reviewResponse := v1beta1.AdmissionResponse{Allowed: true}
+func CreateReviewResponseFromPatches(patchList []Patch) *admissionv1.AdmissionResponse {
+  reviewResponse := admissionv1.AdmissionResponse{Allowed: true}
   var patches []byte
   var err error
   if len(patchList) > 0 {
@@ -79,7 +82,7 @@ func CreateReviewResponseFromPatches(patchList []Patch) *v1beta1.AdmissionRespon
   }
   if len(patches) > 0 {
     reviewResponse.Patch = patches
-    pt := v1beta1.PatchTypeJSONPatch
+    pt := admissionv1.PatchTypeJSONPatch
     reviewResponse.PatchType = &pt
   }
   return &reviewResponse

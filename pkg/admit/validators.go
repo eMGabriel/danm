@@ -4,12 +4,12 @@ import (
   "errors"
   "net"
   "strconv"
-  admissionv1 "k8s.io/api/admission/v1beta1"
   danmtypes "github.com/nokia/danm/crd/apis/danm/v1"
   danmclientset "github.com/nokia/danm/crd/client/clientset/versioned"
   "github.com/nokia/danm/pkg/datastructs"
   "github.com/nokia/danm/pkg/danmep"
   "github.com/nokia/danm/pkg/ipam"
+  admissionv1 "k8s.io/api/admission/v1"
   "k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 )
 

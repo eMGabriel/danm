@@ -6,6 +6,7 @@ import (
   "k8s.io/api/admission/v1beta1"
   "github.com/nokia/danm/pkg/confman"
   "github.com/nokia/danm/pkg/danmep"
+  "k8s.io/api/admission/v1"
 )
 
 //A GIGANTIC DISCLAIMER: THIS DOES NOT WORK BEFORE K8S 1.15!
@@ -47,7 +48,7 @@ func (validator *Validator) DeleteNetwork(responseWriter http.ResponseWriter, re
       return
     }
   }
-  responseAdmissionReview := v1beta1.AdmissionReview {
+  responseAdmissionReview := v1.AdmissionReview {
     Response: CreateReviewResponseFromPatches(nil),
   }
   responseAdmissionReview.Response.UID = admissionReview.Request.UID

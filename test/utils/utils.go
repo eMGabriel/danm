@@ -14,7 +14,7 @@ import (
   "github.com/nokia/danm/pkg/ipam"
   "github.com/nokia/danm/pkg/admit"
   httpstub "github.com/nokia/danm/test/stubs/http"
-  "k8s.io/api/admission/v1beta1"
+  "k8s.io/api/admission/v1"
 )
 
 var (
@@ -132,9 +132,9 @@ func GetTconf(tconfName string, tconfSet []danmtypes.TenantConfig) *danmtypes.Te
   return nil
 }
 
-func CreateHttpRequest(oldObj, newObj []byte, isOldMalformed, isNewMalformed bool, opType v1beta1.Operation) (*http.Request, error) {
-  request := v1beta1.AdmissionRequest{}
-  review := v1beta1.AdmissionReview{Request: &request}
+func CreateHttpRequest(oldObj, newObj []byte, isOldMalformed, isNewMalformed bool, opType v1.Operation) (*http.Request, error) {
+  request := v1.AdmissionRequest{}
+  review := v1.AdmissionReview{Request: &request}
   if opType != "" {
     review.Request.Operation = opType
   }
@@ -191,7 +191,7 @@ func ValidateHttpResponse(writer *httpstub.ResponseWriterStub, isErrorExpected b
   return validatePatches(response, expectedPatches)
 }
 
-func validatePatches(response *v1beta1.AdmissionResponse, expectedPatches []admit.Patch) error {
+func validatePatches(response *v1.AdmissionResponse, expectedPatches []admit.Patch) error {
   if len(expectedPatches) == 0 {
     if response.Patch != nil {
       return errors.New("did not expect any patches but some were included in the admission response")

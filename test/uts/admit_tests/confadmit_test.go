@@ -8,141 +8,141 @@ import (
   "github.com/nokia/danm/pkg/admit"
   httpstub "github.com/nokia/danm/test/stubs/http"
   "github.com/nokia/danm/test/utils"
-  "k8s.io/api/admission/v1beta1"
-  meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+  admissionv1 "k8s.io/api/admission/v1"
+  metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
   validateConfs = []danmtypes.TenantConfig {
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "malformed"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "malformed"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
       },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "invalid-type"},
-      TypeMeta: meta_v1.TypeMeta {Kind: "invalid"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "invalid-type"},
+      TypeMeta:   metav1.TypeMeta{Kind: "invalid"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
       },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "empty-config"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "empty-config"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "noname"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710"},
-        danmtypes.IfaceProfile{VniType: "vlan", VniRange: "200,500-510"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "noname"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710"},
+        {VniType: "vlan", VniRange: "200,500-510"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "norange"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan"},
-        danmtypes.IfaceProfile{Name: "ens5", VniType: "vlan", VniRange: "700-710"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "norange"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan"},
+        {Name: "ens5", VniType: "vlan", VniRange: "700-710"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "notype"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710"},
-        danmtypes.IfaceProfile{Name: "ens5", VniRange: "700-710"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "notype"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710"},
+        {Name: "ens5", VniRange: "700-710"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "invalid-vni-type"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan2", VniRange: "700-710"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "invalid-vni-type"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan2", VniRange: "700-710"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "invalid-vni-value"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-71a0"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "invalid-vni-value"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-71a0"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "invalid-vni-range"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5001"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "invalid-vni-range"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5001"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "valid-vni-range"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "valid-vni-range"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "manual-alloc-old"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "manual-alloc-old"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "manual-alloc"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
-        danmtypes.IfaceProfile{Name: "nokia.k8s.io/sriov_ens1f0", VniType: "vlan", VniRange: "700-710"},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "manual-alloc"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "700-710", Alloc: utils.AllocFor5k},
+        {Name: "nokia.k8s.io/sriov_ens1f0", VniType: "vlan", VniRange: "700-710"},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "nonetype"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "nonetype"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      NetworkIds: map[string]string{
         "": "asd",
-       },
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "nonid"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "nonid"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      NetworkIds: map[string]string{
         "flannel": "",
-       },
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "longnid"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "longnid"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      NetworkIds: map[string]string{
         "flannel": "abcdefghijkl",
-       },
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "longnid-sriov"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "longnid-sriov"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      NetworkIds: map[string]string{
         "flannel": "abcdefghijkl",
-        "sriov": "abcdefghijkl",
-       },
+        "sriov":   "abcdefghijkl",
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "shortnid"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "shortnid"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      NetworkIds: map[string]string{
         "flannel": "abcdefghijk",
-        "sriov": "abcdefghij",
-       },
+        "sriov":   "abcdefghij",
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "old-iface"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000", Alloc: utils.AllocFor5k},
-       },
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "old-iface"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000", Alloc: utils.AllocFor5k},
+      },
     },
-    danmtypes.TenantConfig {
-      ObjectMeta: meta_v1.ObjectMeta {Name: "new-iface"},TypeMeta: meta_v1.TypeMeta {Kind: "TenantConfig"},
-      HostDevices: []danmtypes.IfaceProfile {
-        danmtypes.IfaceProfile{Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000", Alloc: utils.AllocFor5k},
-       },
-      NetworkIds: map[string]string {
+    {
+      ObjectMeta: metav1.ObjectMeta{Name: "new-iface"}, TypeMeta: metav1.TypeMeta{Kind: "TenantConfig"},
+      HostDevices: []danmtypes.IfaceProfile{
+        {Name: "ens4", VniType: "vxlan", VniRange: "900-4999,5000", Alloc: utils.AllocFor5k},
+      },
+      NetworkIds: map[string]string{
         "flannel": "flannel",
-       },
+      },
     },
   }
 )
 
 var validateTconfTcs = []struct {
-  tcName string
-  oldTconfName string
-  newTconfName string
-  opType v1beta1.Operation
+  tcName          string
+  oldTconfName    string
+  newTconfName    string
+  opType          admissionv1.Operation
   isErrorExpected bool
   expectedPatches []admit.Patch
 }{
@@ -158,19 +158,19 @@ var validateTconfTcs = []struct {
   {"interfaceProfileWithInvalidVniValue", "", "invalid-vni-value", "", true, nil},
   {"interfaceProfileWithInvalidVniRange", "", "invalid-vni-range", "", true, nil},
   {"interfaceProfileWithValidVniRange", "", "valid-vni-range", "", false, expectedPatch},
-  {"interfaceProfileWithSetAlloc", "", "manual-alloc", v1beta1.Create, true, nil},
-  {"interfaceProfileChangeWithAlloc", "manual-alloc-old", "manual-alloc", v1beta1.Update, false, expectedPatch},
+  {"interfaceProfileWithSetAlloc", "", "manual-alloc", admissionv1.Create, true, nil},
+  {"interfaceProfileChangeWithAlloc", "manual-alloc-old", "manual-alloc", admissionv1.Update, false, expectedPatch},
   {"networkIdWithoutKey", "", "nonid", "", true, nil},
   {"networkIdWithoutValue", "", "nonetype", "", true, nil},
   {"longNidWithStaticNeType", "", "longnid", "", false, nil},
   {"longNidWithDynamicNeType", "", "longnid-sriov", "", true, nil},
   {"okayNids", "", "shortnid", "", false, nil},
-  {"noChangeInIfaces", "old-iface", "new-iface", v1beta1.Update, false, nil},
+  {"noChangeInIfaces", "old-iface", "new-iface", admissionv1.Update, false, nil},
 }
 
 var (
   expectedPatch = []admit.Patch {
-    admit.Patch {Path: "/hostDevices"},
+    {Path: "/hostDevices"},
   }
 )
 

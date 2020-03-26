@@ -5,7 +5,7 @@ import (
   "errors"
   "io/ioutil"
   "net/http"
-  "k8s.io/api/admission/v1beta1"
+  "k8s.io/api/admission/v1"
   "k8s.io/apimachinery/pkg/runtime"
   "k8s.io/apimachinery/pkg/runtime/serializer"
 )
@@ -34,11 +34,11 @@ func (writer *ResponseWriterStub) WriteHeader(statusCode int) {
   return
 }
 
-func (writer *ResponseWriterStub) GetAdmissionResponse() (*v1beta1.AdmissionResponse,error) {
+func (writer *ResponseWriterStub) GetAdmissionResponse() (*v1.AdmissionResponse,error) {
   if writer.Response == nil {
     return nil, errors.New("no response was sent")
   }
-  review := v1beta1.AdmissionReview{}
+  review := v1.AdmissionReview{}
   reader := bytes.NewReader(writer.Response)
   readCloser := ioutil.NopCloser(reader)
   payload, err := ioutil.ReadAll(readCloser)

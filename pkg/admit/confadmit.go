@@ -9,6 +9,7 @@ import (
   "k8s.io/api/admission/v1beta1"
   danmtypes "github.com/nokia/danm/crd/apis/danm/v1"
   "github.com/nokia/danm/pkg/bitarray"
+  admissionv1 "k8s.io/api/admission/v1"
 )
 
 const (
@@ -44,7 +45,7 @@ func (validator *Validator) ValidateTenantConfig(responseWriter http.ResponseWri
     return
   }
   mutateConfigManifest(newManifest)
-  responseAdmissionReview := v1beta1.AdmissionReview {
+  responseAdmissionReview := admissionv1.AdmissionReview {
     Response: CreateReviewResponseFromPatches(createPatchListFromConfigChanges(origNewManifest,newManifest)),
   }
   responseAdmissionReview.Response.UID = admissionReview.Request.UID
@@ -70,7 +71,7 @@ func decodeTenantConfig(objectToReview []byte) (*danmtypes.TenantConfig,error) {
 
 //TODO: as above. Until reflection is figured out, this is somewhat of a duplication
 //Maybe a struct wrapping the exact object type could also work (that would push reflection responsibility on the validators though)
-func validateConfig(oldManifest, newManifest *danmtypes.TenantConfig, opType v1beta1.Operation) (bool,error) {
+func validateConfig(oldManifest, newManifest *danmtypes.TenantConfig, opType admissionv1.Operation) (bool,error) {
   if newManifest.TypeMeta.Kind != "TenantConfig" {
     return false, errors.New("K8s API type:" + newManifest.TypeMeta.Kind + " is not handled by DANM webhook")
   }

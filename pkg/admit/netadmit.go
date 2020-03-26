@@ -14,6 +14,7 @@ import (
   danmclientset "github.com/nokia/danm/crd/client/clientset/versioned"
   "github.com/nokia/danm/pkg/confman"
   "github.com/nokia/danm/pkg/metacni"
+  admissionv1 "k8s.io/api/admission/v1"
 )
 
 var (
@@ -76,7 +77,7 @@ func (validator *Validator) ValidateNetwork(responseWriter http.ResponseWriter, 
     SendErroneousAdmissionResponse(responseWriter, admissionReview.Request, err)
     return
   }
-  responseAdmissionReview := v1beta1.AdmissionReview {
+  responseAdmissionReview := admissionv1.AdmissionReview {
     Response: CreateReviewResponseFromPatches(createPatchListFromNetChanges(origNewManifest,newManifest)),
   }
   responseAdmissionReview.Response.UID = admissionReview.Request.UID
@@ -98,7 +99,7 @@ func getNetworkManifest(objectToReview []byte) (*danmtypes.DanmNet,error) {
   return &networkManifest, nil
 }
 
-func validateNetworkByType(oldManifest, newManifest *danmtypes.DanmNet, opType v1beta1.Operation, client danmclientset.Interface) (bool,error) {
+func validateNetworkByType(oldManifest, newManifest *danmtypes.DanmNet, opType admissionv1.Operation, client danmclientset.Interface) (bool,error) {
   validatorMapping, isTypeHandled := danmValidationConfig[newManifest.TypeMeta.Kind]
   if !isTypeHandled {
     return false, errors.New("K8s API type:" + newManifest.TypeMeta.Kind + " is not handled by DANM webhook")

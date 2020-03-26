@@ -29,7 +29,7 @@ subjects:
   name: danm-webhook
   namespace: kube-system
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: danm-webhook-config
@@ -50,6 +50,8 @@ webhooks:
         apiVersions: ["v1"]
         resources: ["danmnets","clusternetworks","tenantnetworks"]
     failurePolicy: Fail
+    admissionReviewVersions: [ v1 ]
+    sideEffects: None
   - name: danm-configvalidation.nokia.k8s.io
     clientConfig:
       service:
@@ -64,6 +66,8 @@ webhooks:
         apiVersions: ["v1"]
         resources: ["tenantconfigs"]
     failurePolicy: Fail
+    admissionReviewVersions: [ v1 ]
+    sideEffects: None
   - name: danm-netdeletion.nokia.k8s.io
     clientConfig:
       service:
@@ -78,6 +82,8 @@ webhooks:
         apiVersions: ["v1"]
         resources: ["danmnets","clusternetworks","tenantnetworks"]
     failurePolicy: Fail
+    admissionReviewVersions: [ v1 ]
+    sideEffects: None
 ---
 apiVersion: v1
 kind: Service
