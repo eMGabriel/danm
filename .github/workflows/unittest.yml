@@ -1,0 +1,89 @@
+name: Unit Test
+
+on:
+  push:
+    branches:
+      - 'main'  
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version:
+          - 1.13.x
+#          - 1.14.x
+        os:
+          - ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Go Environment
+        run: go env
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Create Project Directory Link In go/src
+        run: |
+          mkdir -p $HOME/go/src/github.com/nokia
+          sudo ln -s $GITHUB_WORKSPACE $HOME/go/src/github.com/nokia/danm
+          ls -la $HOME/go/src/github.com/nokia/danm
+
+      - name: Cache Go Modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-build-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-${{ env.cache-name }}-
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build binary dependencies
+        run: go install ./cmd/cnitest
+
+      - name: List gopath
+        run: ls -la ~/go/bin ~/go/pkg/mod
+
+      - name: Test
+        run: sudo -E env PATH=$PATH GOPATH=$HOME/go go test ./test/uts/...
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |
+            LATEST_TAG=${LATEST_TAG}
+            COMMIT_HASH=${COMMIT_HASH}
+          context: .
+          file: ./scm/build/Dockerfile
+#          platforms: linux/amd64,linux/arm64,linux/386
+          push: false
+          tags: temp/danm:latest
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      - uses: philips-labs/tern-action@v1.1.0
+        id: scan
+        with:
+          image: temp/danm:latest
+          format: spdxtagvalue
+#          format: yaml
+#          output: danm.yaml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: tern
+          path: ${{ steps.scan.outputs.file }}
+
